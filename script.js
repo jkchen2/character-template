@@ -31,7 +31,7 @@ async function main() {
 
     // Check if data can be loaded
     var split = window.location.hash.replace('#', '').split(':');
-    if (split.length == 2 && true) {  // TODO: Change debug
+    if (split.length == 2) {
         if (!await fetch_start_data(split))
             return;
         if (!await check_session_validity())
@@ -530,7 +530,7 @@ async function clicked_submit() {
             } else if (parsed.name.startsWith('err')) {
                 var error_code = parsed.name.split(':')[1];
                 var description = 'Unknown error.';
-                var descriptions = {  // TODO: Finish
+                var descriptions = {
                     '1': 'Invalid input',
                     '2': 'Invalid thumbnail URL',
                     '3': 'Invalid image URL',
