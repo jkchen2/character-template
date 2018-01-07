@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="styles.css" rel="stylesheet">
+<script src="script.js"></script>
+
+<head>
+    <meta charset="utf-8">
+    <title>Character Creator</title>
+    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+</head>
+
+<body onload="main()">
+    <div id="main_container">
+
+        <h1>Character Creator</h1>
+        <p>Select a type and give your character a name.</p>
+        <div id="edit_warning" class="hidden">
+            <p>You already have a character by that name. If you submit your changes, data will be overwritten.</p>
+        </div>
+        <p class="required_optional">(Required)</p>
+
+        <div id="type_selector">
+            <input type="radio" name="character_type" value="fursona" id="type_fursona"><label class="radio_button" for="type_fursona">Fursona</label>
+            <input type="radio" name="character_type" value="oc" id="type_oc"><label class="radio_button" for="type_oc">OC</label>
+        </div>
+
+        <div class="entry count_characters" id="name_entry">
+            <div class="name"><textarea rows="1" maxlength="50" placeholder="Name"></textarea></div>
+        </div>
+
+        <hr>
+
+        <h1>Attributes</h1>
+        <p>Specify up to 20 attributes for your character.<br>
+        Some attributes are common and will be grouped together on the profile page to save space.<br>
+        In addition to the common ones below, you may consider attributes such as personality, likes/dislikes, etc.<br>
+        Attribute names are case sensitive.</p>
+        <p class="required_optional">(Optional)</p>
+
+        <div id="attribute_container"></div>
+
+        <hr>
+
+        <h1>Visuals</h1>
+        <p>Add an embed color, thumbnail, and up to 10 images of your character.<br>
+        The embed color will show up as a colored bar shown on the side of the character profile.<br>
+        Use direct URLs for the thumbnail and images.</p>
+        <p class="required_optional">(Optional)</p>
+
+        <div class="entry" id="embed_color">
+            <div class="value" id="color_value"><textarea rows="1" maxlength="8" placeholder="Hex color"></textarea></div>
+            <div class="value" id="color_preview"><textarea rows="1" disabled>Color preview</textarea></div>
+        </div>
+
+        <div class="entry" id="thumbnail_entry">
+            <div class="delete" onclick="clear_thumbnail.call(this)">&#x2A09;</div>
+            <div class="value"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Thumbnail URL"></textarea></div>
+            <div class="countdown">200</div>
+        </div>
+
+        <div id="images_container"></div>
+
+        <hr>
+
+        <p>When you're done, you can either save or submit your character with the buttons below.<br>
+        (If submitting directly doesn't work, you can download the character file and submit it manually.)</p>
+        <p id="session_warning" class="hidden">Submission has been disabled because the session either does not exist or has ended.</p>
+        <br>
+        <p id="credits">Powered by Discord webhooks<br>Hosted with GitHub Pages</p>
+
+    </div>
+
+    <div id="footer_container">
+        <hr>
+        <div id="footer">
+            <div id="footer_flex">
+                <div id="countdown_container">
+                    <span id="total_countdown">500</span>/3000 total characters used
+                </div>
+                <div id="button_container">
+                    <span class="button" onclick="clicked_load_from_disk()">Load from disk</span>
+                    <span class="button" onclick="clicked_save_to_disk()">Save to disk</span>
+                    <span id="submit_button" class="button" onclick="clicked_submit()">Submit</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification_container" class="hidden">
+        <div id="click_area" class="okay_action" onclick="clicked_okay(false)"></div>
+        <div id="notification_box">
+            <div id="notification_text">test</div>
+            <div id="okay_button_container">
+                <div id="okay_button" class="button okay_action" onclick="clicked_okay()">Okay</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="entry count_characters" id="template_attribute_entry">
+        <div class="delete" onclick="remove_attribute_entry.call(this)">&#x2A09;</div>
+        <div class="name"><textarea rows="1" placeholder="Attribute name"></textarea></div>
+        <div class="value"><textarea rows="1" maxlength="1000" placeholder="Attribute value"></textarea></div>
+        <div class="countdown">1000</div>
+    </div>
+
+    <div class="entry" id="template_image_entry">
+        <div class="delete" onclick="remove_image_entry.call(this)">&#x2A09;</div>
+        <div class="value"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Image URL"></textarea></div>
+        <div class="countdown">200</div>
+    </div>
+
+    <a class="hidden" id="downloader"></a>
+
+    <input type="file" class="hidden" id="file_selector" accept=".character">
+
+</body>
