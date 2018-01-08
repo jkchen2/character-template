@@ -524,6 +524,7 @@ async function clicked_submit() {
         _end_session()
         if (parsed.name) {
             if (parsed.name.startsWith('ok')) {
+                potential_changes = false;
                 show_message(
                     'Your character has been successfully ' + (overwriting ? 'edited!' : 'submitted!') +
                     '\n\nThis session is now expired.');
