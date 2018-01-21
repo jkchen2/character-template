@@ -19,11 +19,13 @@
         <p class="required_optional">(Required)</p>
 
         <div id="type_selector">
-            <input type="radio" name="character_type" value="fursona" id="type_fursona"><label class="radio_button" for="type_fursona">Fursona</label>
-            <input type="radio" name="character_type" value="oc" id="type_oc"><label class="radio_button" for="type_oc">OC</label>
+            <input onclick="parse_tags()" type="radio" name="character_type" value="fursona" id="type_fursona">
+            <label class="radio_button" for="type_fursona">Fursona</label>
+            <input onclick="parse_tags()" type="radio" name="character_type" value="oc" id="type_oc">
+            <label class="radio_button" for="type_oc">OC</label>
         </div>
 
-        <div class="entry count_characters" id="name_entry">
+        <div class="entry count_characters centered" id="name_entry">
             <div class="name"><textarea rows="1" maxlength="50" placeholder="Name"></textarea></div>
         </div>
 
@@ -44,16 +46,17 @@
         <p>Add an embed color, thumbnail, and up to 10 images of your character.<br>
         The embed color will show up as a colored bar shown on the side of the character profile.<br>
         Use direct image URLs (ending in .jpg, .png, or similar) for the thumbnail and images.<br>
+        The source URL for images can be used to link to the artist's page.<br>
         <a href="https://github.com/jkchen2/character-template/wiki/Direct-image-URL-guide" target="_blank">Click here</a> for a tutorial on how to get direct image URLs.</p>
         <p class="required_optional">(Optional)</p>
 
-        <div class="entry" id="embed_color">
+        <div class="entry centered" id="embed_color">
             <div class="value" id="color_value"><textarea rows="1" maxlength="8" placeholder="Hex color"></textarea></div>
             <div class="value" id="color_preview"><textarea rows="1" disabled>Color preview</textarea></div>
         </div>
 
-        <div class="entry" id="thumbnail_entry">
-            <div class="delete" onclick="clear_thumbnail.call(this)">&#x2A09;</div>
+        <div class="entry centered" id="thumbnail_entry">
+            <div class="delete" onclick="clear_value.call(this)">&#x2A09;</div>
             <div class="value"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Thumbnail URL"></textarea></div>
             <div class="countdown">200</div>
         </div>
@@ -62,11 +65,28 @@
 
         <hr>
 
+        <h1>Tags</h1>
+        <p>Add keyword tags to help others search for your character.<br>
+        Consider adding common attributes such as species and gender.<br>
+        Your character's name and type will always be included as a tag.<br>
+        Tags should be separated with a hash sign (#).</p>
+        <p class="required_optional">(Optional)</p>
+
+        <div class="entry centered" id="tags_entry">
+            <div class="delete" onclick="clear_value.call(this); parse_tags.call(this)">&#x2A09;</div>
+            <div class="value"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Tags"></textarea></div>
+            <div class="countdown">200</div>
+        </div>
+
+        <div id="tags_preview"></div>
+
+        <hr>
+
         <p>When you're done, you can either save or submit your character with the buttons below.<br>
         (If submitting directly doesn't work, you can download the character file and submit it manually.)</p>
         <p id="session_warning" class="hidden">Submission has been disabled because the session either does not exist or has ended.</p>
         <br>
-        <p id="credits">Powered by Discord webhooks<br>Hosted with GitHub Pages</p>
+        <div id="credits">Version <span id="version"></span><br>Powered by Discord webhooks<br>Hosted with GitHub Pages</div>
 
     </div>
 
@@ -103,10 +123,23 @@
         <div class="countdown">1000</div>
     </div>
 
-    <div class="entry" id="template_image_entry">
+    <div class="entry centered" id="template_image_entry">
         <div class="delete" onclick="remove_image_entry.call(this)">&#x2A09;</div>
-        <div class="value"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Image URL"></textarea></div>
-        <div class="countdown">200</div>
+        <div class="metadata_container">
+            <div class="image_entry image_url_container">
+                <div class="image_entry_value image_url"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Direct image URL"></textarea></div>
+                <div class="countdown">200</div>
+            </div>
+            <div class="image_entry source_url_container">
+                <div class="image_entry_value source_url"><textarea spellcheck="false" rows="1" maxlength="200" placeholder="Source URL"></textarea></div>
+                <div class="countdown">200</div>
+            </div>
+            <div class="image_entry caption_container">
+                <div class="image_entry_value caption"><textarea spellcheck="false" rows="1" maxlength="100" placeholder="Caption"></textarea></div>
+                <div class="countdown">100</div>
+            </div>
+
+        </div>
     </div>
 
     <a class="hidden" id="downloader"></a>

@@ -1,8 +1,8 @@
 // This doesn't really follow any specific established style. Sorry.
 
-const VERSION = 1;
+const VERSION = 2;
 const COMMON_ATTRIBUTES = ['Species', 'Height', 'Age', 'Gender', 'Sexuality'];
-const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
 var start_data = {'fetched': false};
 var shown_limit_warning = false,
@@ -12,20 +12,23 @@ var shown_limit_warning = false,
     okay_callback = null,
     overwriting = false;
 
-function _qs(selector) { return document.querySelector(selector) }
-function _qa(selector) { return document.querySelectorAll(selector) }
-function _al(target, listeners) { listeners.forEach(it => target.addEventListener('input', it)) }
-function _fc() { potential_changes = true }
+function _qs(selector) { return document.querySelector(selector); }
+function _qa(selector) { return document.querySelectorAll(selector); }
+function _al(target, listeners) { listeners.forEach(it => target.addEventListener('input', it)); }
+function _fc() { potential_changes = true; }
 
 // Stupid Edge forEach polyfill
 if (!NodeList.prototype.forEach)
     NodeList.prototype.forEach = Array.prototype.forEach;
 
 async function main() {
+    _qs('#version').innerText = VERSION;
+
     // Set textarea event listeners
     _al(_qs('#color_value textarea'), [preview_color, _fc]);
     _al(_qs('#thumbnail_entry textarea'), [auto_resize, _fc]);
     _al(_qs('#name_entry textarea'), [count_total_characters, check_name, _fc]);
+    _al(_qs('#tags_entry textarea'), [parse_tags, auto_resize, _fc]);
 
     window.onbeforeunload = _ => potential_changes ? 'Unsaved changes will be lost.' : null;
 
@@ -71,10 +74,6 @@ function load_editing_data(editing) {
     var name_entry = _qs('#name_entry textarea');
     name_entry.value = editing.name;
     check_name.call(name_entry);
-    for (var it in editing.attributes)
-        add_attribute_entry(it, editing.attributes[it]);
-    for (var it in editing.images)
-        add_image_entry(editing.images[it]);
     var thumbnail_textarea = _qs('#thumbnail_entry textarea');
     thumbnail_textarea.value = editing.thumbnail === null ? '' : editing.thumbnail;
     auto_resize.call(thumbnail_textarea);
@@ -83,6 +82,21 @@ function load_editing_data(editing) {
     else
         _qs('#embed_color textarea').value = '';
     preview_color();
+
+    // Version differences
+    if (editing.version == 1) {
+        for (var it in editing.attributes)
+            add_attribute_entry(it, editing.attributes[it]);
+    } else {
+        for (var it = 0; it < editing.attribute_order.length; it++) {
+            var current = editing.attribute_order[it];
+            add_attribute_entry(current, editing.attributes[current]);
+        }
+    }
+    _qs('#tags_entry textarea').value = editing.version == 1 ? '' : editing.tags_raw;
+    parse_tags();
+    for (var it = 0; it < editing.images.length; it++)
+        add_image_entry(editing.images[it], editing.version);
 }
 
 async function fetch_start_data(url_args) {
@@ -204,8 +218,12 @@ function remove_attribute_entry() {
 
 function auto_resize() {
     this.style.height = 'auto';
-    this.style.height = (this.scrollHeight - 32) + 'px';
+    this.style.height = (this.scrollHeight - 35) + 'px';
     this.style.maxHeight = this.style.height;
+    if (this.scrollHeight <= 60) {  // Firefox scroll fix
+        this.style.height = '16px';
+        this.style.maxHeight = '16px';
+    }
     var countdown = this.parentElement.nextElementSibling;
     var remaining = this.maxLength - this.value.length;
     countdown.innerText = remaining;
@@ -215,28 +233,43 @@ function auto_resize() {
         countdown.classList.remove('warning_color');
 }
 
-function clear_thumbnail() {
+function clear_value(limit = 200) {
     var value_textarea = this.nextElementSibling.children[0];
     value_textarea.value = '';
-    this.nextElementSibling.nextElementSibling.innerText = 200;
+    this.nextElementSibling.nextElementSibling.innerText = limit;
     auto_resize.call(value_textarea);
 }
 
-function add_image_entry(value = '') {
+function add_image_entry(value = null, version = VERSION) {
     var container = _qs('#images_container');
     if (container.children.length >= 10)
         return;
     var clone = _qs('#template_image_entry').cloneNode(true);
     clone.removeAttribute('id');
-    var textarea = clone.querySelector('textarea');
-    textarea.value = value;
-    _al(textarea, [auto_add_image, auto_resize, _fc]);
+
+    // Set entry based on version
+    var textareas = clone.querySelectorAll('textarea');
+    if (value) {
+        if (version == 1) {
+            textareas[0].value = value;
+        } else {
+            textareas[0].value = value[0];
+            textareas[1].value = value[1];
+            textareas[2].value = value[2];
+        }
+
+    }
+
+    textareas.forEach(it => {
+        _al(it, [auto_add_image, auto_resize, _fc]);
+        auto_resize.call(it);
+    });
     container.appendChild(clone);
     return clone;
 }
 
 function auto_add_image() {
-    var entry = this.parentElement.parentElement;
+    var entry = this.closest('.entry');
     if (entry.parentElement.children.length < 10 &&
         entry.nextElementSibling === null &&
         this.value.length != 0) {
@@ -286,7 +319,7 @@ function count_total_characters(warn = true) {
         }
     }
 
-    return total_characters
+    return total_characters;
 }
 
 function prevent_input(event) {
@@ -327,7 +360,7 @@ function preview_color(preview = true) {
     var preview = _qs('#color_preview textarea');
     if (preview && value.length < 6) {
         preview.style.backgroundColor = null;
-        preview.style.color = 'var(--fg-primary)'
+        preview.style.color = 'var(--fg-primary)';
         preview.value = 'Color preview';
         return;
     }
@@ -335,7 +368,7 @@ function preview_color(preview = true) {
     if (preview) {
         if (isNaN(parsed)) {
             preview.style.backgroundColor = null;
-            preview.style.color = 'rgba(255, 0, 0, 1.0)'
+            preview.style.color = 'rgba(255, 0, 0, 1.0)';
             preview.value = 'Invalid hex color';
         } else {
             var luminance = Number('0x' + value.slice(0, 2))*0.2126 +
@@ -355,7 +388,7 @@ function parse_color(value = null) {
     return [value.length == 6 ? Number('0x' + value) : NaN, value];
 }
 
-function check_name() {
+function check_name(update_tags = true) {
     var expression = /[0-9a-z-_]+/g;
     var parsed = '', result;
     while (result = expression.exec(this.value.toLowerCase()))
@@ -367,15 +400,58 @@ function check_name() {
         _qs('#edit_warning').classList.add('hidden');
         overwriting = false;
     }
+    if (update_tags)
+        parse_tags.call(_qs('#tags_entry textarea'));
     return parsed;
+}
+
+function parse_tags() {
+    var tags = [];
+
+    // Use query selector because of the delete button
+    var textarea = _qs('#tags_entry textarea');
+    if (textarea.value.length && !textarea.value.startsWith('#'))
+        textarea.value = '#' + textarea.value;
+
+    // If a type is given, add it to the tags list
+    var type = _qs('#type_selector input:checked');
+    if (type)
+        tags.push(type.value);
+
+    // If a name is given, add it to the tags list
+    var expression = /[0-9a-z-_]+/g;
+    var name = check_name.call(_qs('#name_entry textarea'), false);
+    if (name && !tags.includes(name))
+        tags.push(name);
+
+    // Parse each entry
+    textarea.value.split('#').forEach(it => {
+        var parsed = '', result;
+        while (result = expression.exec(it.trim().toLowerCase()))
+            parsed += result[0];
+        if (parsed && !tags.includes(parsed))
+            tags.push(parsed);
+    });
+
+    // Update preview
+    var preview_area = _qs('#tags_preview');
+    if (tags.length)
+        preview_area.innerText = '#' + tags.join('   #');
+    else
+        preview_area.innerText = '';
+    return tags;
 }
 
 function check_data() {
     var issues = [];
+
+    // Check character type and name
     if (!_qs('#type_selector input:checked'))
         issues.push('A character type needs to be selected.');
-    if (!_qs('#name_entry textarea').value)
+    if (!check_name.call(_qs('#name_entry textarea')))
         issues.push('A name is required.');
+
+    // Check attributes
     var used_names = [];
     var matches = _qa('#attribute_container .entry');
     for (var it = 0; it < matches.length; it++) {
@@ -386,16 +462,29 @@ function check_data() {
         if (!name)
             issues.push('Attribute ' + (it+1) + ' is missing a name.');
         if (!value)
-            issues.push('Attribute "' + name + '" is missing a value.')
+            issues.push('Attribute "' + name + '" is missing a value.');
         if (used_names.includes(name))
             issues.push('Duplicate attribute name "' + name + '"');
         used_names.push(name);
     }
-    if (count_total_characters(false) > 3000)
-        issues.push('The total character limit is exceeded.')
+
+    // Check image metadata entries
+    matches = _qa('.metadata_container');
+    for (it = 0; it < matches.length; it++) {
+        var textareas = matches[it].querySelectorAll('textarea');
+        var values = [textareas[0].value, textareas[1].value, textareas[2].value];
+        if (!values[0] && !values[1] && !values[2])
+            continue;
+        if (!values[0])
+            issues.push('Image ' + (it+1) + ' is missing the direct image URL.');
+    }
+
     var color_value = _qs('#color_value textarea').value;
     if (color_value && isNaN(parse_color(color_value)[0]))
-        issues.push('The embed color is an invalid hex color.')
+        issues.push('The embed color is an invalid hex color.');
+
+    if (count_total_characters(false) > 3000)
+        issues.push('The total character limit is exceeded.');
 
     if (issues.length) {
         show_message('These issue(s) were detected:\n\n- ' + issues.join('\n- '));
@@ -413,28 +502,33 @@ function gather_data() {
         'clean_name': check_name.call(_qs('#name_entry textarea')),
         'owner_id': null,
         'attributes': {},
+        'attribute_order': [],
         'thumbnail': thumbnail ? thumbnail : null,
         'images': [],
         'embed_color': parse_color()[0],
+        'tags': parse_tags(),
+        'tags_raw': _qs('#tags_entry textarea').value,
         'created': null
     };
-    var matches = _qa('#attribute_container .entry');
-    for (var it = 0; it < matches.length; it++) {
-        var textareas = matches[it].querySelectorAll('textarea');
+    _qa('#attribute_container .entry').forEach(it => {
+        var textareas = it.querySelectorAll('textarea');
         var name = textareas[0].value, value = textareas[1].value;
-        if (name && value)
-            gathered['attributes'][name] = value;
-    }
-    var textareas = _qa('#images_container textarea');
-    for (var it = 0; it < textareas.length; it++) {
-        if (textareas[it].value)
-            gathered['images'].push(textareas[it].value);
-    }
+        if (name && value) {
+            gathered.attributes[name] = value;
+            gathered.attribute_order.push(name);
+        }
+    });
+    _qa('#images_container .metadata_container').forEach(it => {
+        var textareas = it.querySelectorAll('textarea');
+        var values = [textareas[0].value, textareas[1].value, textareas[2].value];
+        if (values[0])
+            gathered.images.push(values);
+    });
     return gathered;
 }
 
 function clicked_load_from_disk() {
-    var reader = new FileReader()
+    var reader = new FileReader();
     reader.onload = function() {
         _qs('#file_selector').value = '';
         try {
@@ -535,6 +629,7 @@ async function clicked_submit() {
                     '1': 'Invalid input',
                     '2': 'Invalid thumbnail URL',
                     '3': 'Invalid image URL',
+                    '4': 'Version is outdated. Please save and reload the page.'
                 }
                 if (error_code in descriptions)
                     description = descriptions[error_code];

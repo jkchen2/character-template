@@ -87,7 +87,6 @@ a:hover {
 
 .entry:hover .delete {
     opacity: 1;
-
 }
 
 .entry p {
@@ -144,24 +143,41 @@ a:hover {
     flex-grow: 1;
 }
 
-.entry .value textarea, .entry .name textarea {
+.entry .value textarea, .entry .name textarea, .image_entry textarea {
     overflow-y: hidden;
     width: calc(100% - 32px);
     padding: 16px;
     height: 16px;
     max-height: 16px;
+    min-height: 16px;
     vertical-align: middle;
     border: none;
     outline: none;
+    margin: 0px;
 }
 
-.entry .value textarea {
+.value textarea {
     text-align: right;
 }
 
 #images_container .name {
     display: none;
 }
+
+.image_entry {
+    display: flex;
+}
+
+.image_entry_value {
+    margin-right: 2px;
+    flex-grow: 1;
+}
+
+.metadata_container {
+    margin-left: 2px;
+    flex-grow: 1;
+}
+
 
 #name_entry {
     justify-content: center;
@@ -172,10 +188,7 @@ a:hover {
     min-width: 100%;
 }
 
-#name_entry .name textarea,
-#embed_color textarea,
-#thumbnail_entry textarea,
-#images_container textarea {
+.centered textarea {
     text-align: center;
 }
 
@@ -194,6 +207,15 @@ a:hover {
 
 #color_preview textarea {
     cursor: default;
+}
+
+#tags_preview {
+    width: 75%;
+    margin: auto;
+    margin-top: 16px;
+    text-align: center;
+    word-wrap: break-word;
+    color: var(--fg-secondary);
 }
 
 #footer_container {
