@@ -7,7 +7,6 @@ const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 var start_data = {'fetched': false};
 var shown_limit_warning = false,
     potential_changes = false,
-    ui_locked = false,
     space_pressed = false,
     okay_callback = null,
     overwriting = false;
@@ -647,9 +646,6 @@ async function clicked_submit() {
 
     }
 
-    var passed = check_data();
-    if (passed) {
-        if (!await _send_data(gather_data()))
-            return;
-    }
+    if (check_data())
+        await _send_data(gather_data())
 }
