@@ -2,7 +2,7 @@
 
 const VERSION = 2;
 const COMMON_ATTRIBUTES = ['Species', 'Height', 'Age', 'Gender', 'Sexuality'];
-const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+const CORS_PROXY = 'https://cors.bridged.cc/';
 
 var start_data = {'fetched': false};
 var shown_limit_warning = false,
